@@ -1,14 +1,28 @@
 import { getDocs, query, collection, disableNetwork, enableNetwork, deleteDoc, doc } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { db } from './index'
 
 export default function Todos() {
 
-  const [status, setStatus] = useState('online')
+  const [status, setStatus] = useState('')
 
   const [ todos, loading, error, snapshot ] = useCollectionData(collection(db, 'todos'))
+
+  const goOffline = async () => {
+    await disableNetwork(db)
+    setStatus('offline')
+  }
+
+  const goOnline = async () => {
+    await enableNetwork(db)
+    setStatus('online')
+  }
+  
+  useEffect(() => {
+    goOffline()
+  }, [])
 
   const deleteTodo = async(todoId) => {
     await deleteDoc(doc(db, 'todos', todoId))
@@ -26,14 +40,8 @@ export default function Todos() {
 
 
       
-      <button onClick={async() => {
-        await disableNetwork(db)
-        setStatus('offline')
-      }}>Go offline</button>
-      <button onClick={async() => {
-        await enableNetwork(db)
-        setStatus('online')
-      }}>Go online</button>
+      <button onClick={goOffline}>Go offline</button>
+      <button onClick={goOnline}>Go online</button>
     </>
   )
 }
